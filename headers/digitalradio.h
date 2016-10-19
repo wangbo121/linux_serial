@@ -8,6 +8,9 @@
 #ifndef HEADERS_DIGITALRADIO_H_
 #define HEADERS_DIGITALRADIO_H_
 
+//#define UART_RADIO 6
+#define UART_RADIO "/dev/ttyUSB0"
+
 #define UART_RADIO_BAUD 9600
 #define UART_RADIO_DATABITS 8 //8 data bit
 #define UART_RADIO_STOPBITS 1 //1 stop bit
@@ -15,9 +18,9 @@
 
 #define RADIO_MAX_WAIT_TIME 6//[s]
 
-#define UART_RADIO 6
 
-int radio_uart_init(unsigned int uart_num);
+
+int radio_uart_init();
 
 /*
  * Function:read_radio_data
@@ -33,7 +36,7 @@ int read_radio_data(unsigned char *buf, unsigned int len);
  */
 int send_radio_data(unsigned char *buf, unsigned int len);
 
-int radio_uart_close(unsigned int uart_num);
+int radio_uart_close();
 
 
 

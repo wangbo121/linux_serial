@@ -32,40 +32,26 @@
 
 static int radio_recv_state = 0;
 
-static int radio_uart_init_real(struct T_UART_DEVICE_PROPERTY *ptr_uart_device_property);
-
-int radio_uart_init(unsigned int uart_num)
+int radio_uart_init()
 {
-    uart_device_property.uart_num=uart_num;
-    uart_device_property.baudrate=UART_RADIO_BAUD;
-    uart_device_property.databits=UART_RADIO_DATABITS;
-    uart_device_property.parity=UART_RADIO_PARITY;
-    uart_device_property.stopbits=UART_RADIO_STOPBITS;
+    uart_device.uart_name=UART_RADIO;
 
-    radio_uart_init_real(&uart_device_property);
+    uart_device.baudrate=UART_RADIO_BAUD;
+    uart_device.databits=UART_RADIO_DATABITS;
+    uart_device.parity=UART_RADIO_PARITY;
+    uart_device.stopbits=UART_RADIO_STOPBITS;
 
-    return 0;
-}
+    uart_device.uart_num=open_uart_dev(uart_device.uart_name);
 
-static int radio_uart_init_real(struct T_UART_DEVICE_PROPERTY *ptr_uart_device_property)
-{
+    uart_device.ptr_fun=read_radio_data;
 
-    if(-1!=(uart_fd[ptr_uart_device_property->uart_num]=open_uart_dev(uart_fd[ptr_uart_device_property->uart_num], ptr_uart_device_property->uart_num)))
-    {
-        printf("uart_fd[UART_RADIO]=%d\n",uart_fd[ptr_uart_device_property->uart_num]);
-        set_uart_opt( uart_fd[ptr_uart_device_property->uart_num], \
-                      ptr_uart_device_property->baudrate,\
-                      ptr_uart_device_property->databits,\
-                      ptr_uart_device_property->parity,\
-                      ptr_uart_device_property->stopbits);
+    set_uart_opt( uart_device.uart_name, \
+                  uart_device.baudrate,\
+                  uart_device.databits,\
+                  uart_device.parity,\
+                  uart_device.stopbits);
 
-        uart_device_pthread(ptr_uart_device_property->uart_num);
-
-#ifdef PRINT_DEBUG_MESSAGE
-        sprintf(dbg_msg,"create uart [%d] and uart_recvbuf_and_process [%d] for RADIO OK!", ptr_uart_device_property->uart_num, ptr_uart_device_property->uart_num);
-        PRINT_DBGMSG();
-#endif
-    }
+    create_uart_pthread(&uart_device);
 
     return 0;
 }
@@ -196,21 +182,18 @@ int read_radio_data(unsigned char *buf, unsigned int len)
     return 0;
 }
 
-/*
- * 函数需要修改
- * 这个函数用到了global_bool_boatpilot.radio_send_packet_cnt
- * 和global_bool_boatpilot.bool_radio_is_locked
- */
 int send_radio_data(unsigned char *buf, unsigned int len)
 {
-    send_uart_data(uart_fd[UART_RADIO], (char *)buf, len);
+    uart_device.uart_name=UART_RADIO;
+    send_uart_data(uart_device.uart_name, (char *)buf, len);
 
     return 0;
 }
 
-int radio_uart_close(unsigned int uart_num)
+int radio_uart_close()
 {
-    close(uart_fd[uart_num]);
+    uart_device.uart_name=UART_RADIO;
+    close_uart_dev(uart_device.uart_name);
 
     return 0;
 }
